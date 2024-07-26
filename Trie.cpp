@@ -65,6 +65,20 @@ Trie::node_t& Trie::node_t::operator=(Trie::node_t&& other) {
     return *this;
 }
 
+void Trie::node_t::debug(std::string& str) const {
+    std::cout << '"' << str << '"';
+    if (this->present) {
+        std::cout << " +";
+    }
+    std::cout << std::endl;
+
+    for (const auto& child : this->children) {
+        str.push_back(child.first);
+        child.second->debug(str);
+        str.pop_back();
+    }
+}
+
 Trie::Trie(): root{nullptr} {}
 
 Trie::~Trie() {
@@ -172,4 +186,13 @@ void Trie::remove(const std::string& str) {
             stack.back()->children.erase(str[stack.size() - 1]);
         }
     }
+}
+
+void Trie::debug() const {
+    std::cout << "<Trie>" << std::endl;
+    if (this->root != nullptr) {
+        std::string str;
+        this->root->debug(str);
+    }
+    std::cout << "</Trie>" << std::endl;
 }

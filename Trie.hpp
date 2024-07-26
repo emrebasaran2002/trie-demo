@@ -18,6 +18,8 @@ class Trie final {
             node_t(node_t&&);
             node_t& operator=(const node_t&);
             node_t& operator=(node_t&&);
+
+            void debug(std::string&) const;
         };
 
         node_t* root;
@@ -34,6 +36,8 @@ class Trie final {
         void add(const std::string&);
         void remove(const std::string&);
         bool contains(const std::string&) const;
+
+        void debug() const;
 };
 
 #endif
