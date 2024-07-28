@@ -67,8 +67,11 @@ Trie::Trie(const Trie& other) {
 }
 
 Trie& Trie::operator=(const Trie& other) {
-    Trie temp {other};
-    std::swap(this->root, temp.root);
+    // Check for self-assignment, as an optimization.
+    if (this != &other) {
+        Trie temp {other};
+        std::swap(this->root, temp.root);
+    }
     return *this;
 }
 
