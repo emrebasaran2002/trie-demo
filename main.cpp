@@ -55,10 +55,33 @@ void copyAssignmentOperatorTest() {
     checkContents(trie2, "[\"duru\", \"emre\"]");
 }
 
+void copyConstructorTest() {
+    Trie trie;
+    Trie* trieCopy;
+
+    trieCopy = new Trie {trie};
+    checkContents(*trieCopy, "[]");
+    delete trieCopy;
+
+    trie.add("emre");
+    trie.add("duru");
+    trieCopy = new Trie {trie};
+    checkContents(*trieCopy, "[\"duru\", \"emre\"]");
+
+    trie.remove("emre");
+    trie.add("aynur");
+    trieCopy->remove("duru");
+    trieCopy->add("mustafa");
+    checkContents(trie, "[\"aynur\", \"duru\"]");
+    checkContents(*trieCopy, "[\"emre\", \"mustafa\"]");
+    delete trieCopy;
+}
+
 int main(void) {
     std::vector<Test> tests;
     tests.emplace_back("emptyTrieTest", &emptyTrieTest);
     tests.emplace_back("copyAssignmentOperatorTest", &copyAssignmentOperatorTest);
+    tests.emplace_back("copyConstructorTest", &copyConstructorTest);
     
     for (const Test& test : tests) {
         std::cout << "Running: " << test.name << std::endl;
