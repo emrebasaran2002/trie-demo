@@ -77,11 +77,64 @@ void copyConstructorTest() {
     delete trieCopy;
 }
 
+void moveAssignmentOperatorTest() {
+    Trie trie1;
+    Trie trie2;
+
+    trie1.add("emre");
+    trie1.add("duru");
+    trie2 = std::move(trie1);
+    checkContents(trie2, "[\"duru\", \"emre\"]");
+
+    trie2.add("aynur");
+    trie2.add("mustafa");
+    trie1 = std::move(trie2);
+    checkContents(trie1, "[\"aynur\", \"duru\", \"emre\", \"mustafa\"]");
+
+    trie1.remove("aynur");
+    trie1.add("mom");
+    trie1.remove("mustafa");
+    trie1.add("dad");
+    trie2 = std::move(trie1);
+    checkContents(trie2, "[\"dad\", \"duru\", \"emre\", \"mom\"]");
+
+    trie1 = Trie{};
+    trie2 = Trie{};
+    checkContents(trie1, "[]");
+    checkContents(trie2, "[]");
+
+    trie1.add("hello");
+    trie2.add("world");
+    trie1 = std::move(trie2);
+    checkContents(trie1, "[\"world\"]");
+}
+
+void moveConstructorTest() {
+    Trie* trie1;
+    Trie* trie2;
+
+    trie1 = new Trie;
+    trie2 = new Trie{std::move(*trie1)};
+    checkContents(*trie2, "[]");
+    delete trie1;
+    delete trie2;
+
+    trie1 = new Trie;
+    trie1->add("hello");
+    trie1->add("world");
+    trie2 = new Trie{std::move(*trie1)};
+    checkContents(*trie2, "[\"hello\", \"world\"]");
+    delete trie1;
+    delete trie2;
+}
+
 int main(void) {
     std::vector<Test> tests;
     tests.emplace_back("emptyTrieTest", &emptyTrieTest);
     tests.emplace_back("copyAssignmentOperatorTest", &copyAssignmentOperatorTest);
     tests.emplace_back("copyConstructorTest", &copyConstructorTest);
+    tests.emplace_back("moveAssignmentOperatorTest", &moveAssignmentOperatorTest);
+    tests.emplace_back("moveConstructorTest", &moveConstructorTest);
     
     for (const Test& test : tests) {
         std::cout << "Running: " << test.name << std::endl;
