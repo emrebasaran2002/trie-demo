@@ -9,7 +9,10 @@ Trie::node_t* Trie::duplicate(const Trie::node_t& other) {
     
     // Copy the children.
     for (const auto& x : other.children) {
-        node->children[x.first] = duplicate(*x.second);
+        node_t* child = duplicate(*x.second);
+        child->parent = node;
+        child->link = x.first;
+        node->children[x.first] = child;
     }
 
     return node;
@@ -119,7 +122,9 @@ void Trie::remove(const std::string& str) {
 
     // Remove the unnecessary nodes along the path.
     while (node != nullptr && !node->present && node->children.size() == 0) {
-        if (node->parent != nullptr) {
+        if (node->parent == nullptr) {
+            this->root = nullptr;
+        } else {
             node->parent->children.erase(node->link);
         }
         node_t* temp = node;
