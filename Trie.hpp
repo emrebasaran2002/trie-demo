@@ -31,9 +31,9 @@ class Trie final {
         ~Trie();
 
         Trie(const Trie&);
-        Trie(Trie&&);
+        Trie(Trie&&) noexcept;
         Trie& operator=(const Trie&);
-        Trie& operator=(Trie&&);
+        Trie& operator=(Trie&&) noexcept;
 
         void add(const std::string&);
         void remove(const std::string&);

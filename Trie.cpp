@@ -75,11 +75,11 @@ Trie& Trie::operator=(const Trie& other) {
     return *this;
 }
 
-Trie::Trie(Trie&& other): root{other.root} {
+Trie::Trie(Trie&& other) noexcept: root{other.root} {
     other.root = nullptr;
 }
 
-Trie& Trie::operator=(Trie&& other) {
+Trie& Trie::operator=(Trie&& other) noexcept {
     std::swap(this->root, other.root);
     return *this;
 }
