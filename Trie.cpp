@@ -1,80 +1,48 @@
 #include "Trie.hpp"
-#include <vector>
 
-Trie::node_t::node_t(): present{false}, children{} {}
+Trie::node_t* Trie::duplicate(const Trie::node_t& other) {
+    node_t* node = new node_t;
+    node->parent = nullptr;
 
-Trie::node_t::~node_t() {
-    // Delete the whole subtree!
-    for (const auto& child : this->children) {
-        delete child.second;
+    // Copy the present flag.
+    node->present = other.present;
+    
+    // Copy the children.
+    for (const auto& x : other.children) {
+        node->children[x.first] = duplicate(*x.second);
     }
+
+    return node;
 }
 
-Trie::node_t::node_t(const Trie::node_t& other):
-    present{other.present},
-    children{}
-{
-    // Recursively copy all children.
-    for (const auto& child : other.children) {
-        this->children[child.first] = new node_t(*child.second);
+void Trie::destroy(Trie::node_t* node) {
+    // Recursively destroy the children.
+    for (const auto& x : node->children) {
+        destroy(x.second);
     }
+    
+    delete node;
 }
 
-Trie::node_t::node_t(Trie::node_t&& other):
-    present{other.present},
-    children{std::move(other.children)}
-{
-    other.children.clear();
-}
-
-Trie::node_t& Trie::node_t::operator=(const Trie::node_t& other) {
-    // Guard against self-assignment.
-    if (this != &other) {
-        // Copy the present field.
-        this->present = other.present;
-
-        // Delete all children of this.
-        for (const auto& child : this->children) {
-            delete child.second;
+void Trie::visit(
+    const Trie::node_t& node, // The node being visited.
+    std::ostream& out, // Output stream to print to.
+    std::string& str, // The current string that has been accumulated.
+    bool& first // True if nothing has yet been printed.
+) {
+    // If present, print the string.
+    if (node.present) {
+        if (!first) {
+            out << ", ";
         }
-        this->children.clear();
-        
-        // Copy all the children.
-        for (const auto& child : other.children) {
-            this->children[child.first] = new node_t {*child.second};
-        }
+        out << '"' << str << '"';
+        first = false;
     }
-    return *this;
-}
 
-Trie::node_t& Trie::node_t::operator=(Trie::node_t&& other) {
-    // Guard against self-assignment.
-    if (this != &other) {
-        // Copy the present field.
-        this->present = other.present;
-
-        // Delete all children of this.
-        for (const auto& child : this->children) {
-            delete child.second;
-        }
-
-        // Move all children of other into this.
-        this->children = std::move(other.children);
-        other.children.clear();
-    }
-    return *this;
-}
-
-void Trie::node_t::debug(std::string& str) const {
-    std::cout << '"' << str << '"';
-    if (this->present) {
-        std::cout << " +";
-    }
-    std::cout << std::endl;
-
-    for (const auto& child : this->children) {
-        str.push_back(child.first);
-        child.second->debug(str);
+    // Recursively visit all the children.
+    for (const auto& x : node.children) {
+        str.push_back(x.first);
+        visit(*x.second, out, str, first);
         str.pop_back();
     }
 }
@@ -82,71 +50,55 @@ void Trie::node_t::debug(std::string& str) const {
 Trie::Trie(): root{nullptr} {}
 
 Trie::~Trie() {
-    delete this->root;
+    if (this->root != nullptr) {
+        destroy(this->root);
+    }
 }
 
-Trie::Trie(const Trie& other): root{other.root ? new node_t{*other.root} : nullptr} {}
+Trie::Trie(const Trie& other) {
+    if (other.root == nullptr) {
+        this->root = nullptr;
+    } else {
+        this->root = duplicate(*other.root);
+    }
+}
+
+Trie& Trie::operator=(const Trie& other) {
+    Trie temp {other};
+    std::swap(this->root, temp.root);
+    return *this;
+}
 
 Trie::Trie(Trie&& other): root{other.root} {
     other.root = nullptr;
 }
 
-Trie& Trie::operator=(const Trie& other) {
-    // Guard against self-assignment.
-    if (this != &other) {
-        delete this->root;
-        if (other.root) {
-            this->root = new node_t{*other.root};
-        } else {
-            this->root = nullptr;
-        }
-    }
-    return *this;
-}
-
 Trie& Trie::operator=(Trie&& other) {
-    // Guard against self-assignment.
-    if (this != &other) {
-        delete this->root;
-        this->root = other.root;
-        other.root = nullptr;
-    }
+    std::swap(this->root, other.root);
     return *this;
 }
 
 void Trie::add(const std::string& str) {
-    // If there is no root, add a root to the tree.
     if (this->root == nullptr) {
         this->root = new node_t;
+        this->root->present = false;
+        this->root->parent = nullptr;
     }
 
-    // Navigate to the node corresponding to the string.
-    node_t* ptr = this->root;
+    // Find the node that corresponds to the string.
+    node_t* node = this->root;
     for (char chr : str) {
-        if (ptr->children.count(chr) == 0) {
-            ptr->children[chr] = new node_t;
+        if (node->children.count(chr) == 0) {
+            node_t* child = new node_t;
+            child->present = false;
+            child->link = chr;
+            child->parent = node;
+            node->children[chr] = child;
         }
-        ptr = ptr->children[chr];
+        node = node->children[chr];
     }
 
-    ptr->present = true;
-}
-
-bool Trie::contains(const std::string& str) const {
-    if (this->root == nullptr) {
-        return false;
-    }
-
-    // Navigate to the node corresponding to the string.
-    node_t* ptr = this->root;
-    for (char chr : str) {
-        if (ptr->children.count(chr) == 0) {
-            return false;
-        }
-        ptr = ptr->children[chr];
-    }
-
-    return ptr->present;
+    node->present = true;
 }
 
 void Trie::remove(const std::string& str) {
@@ -154,45 +106,52 @@ void Trie::remove(const std::string& str) {
         return;
     }
 
-    // Find the chain of pointers leading to the node that corresponds to
-    // the given string.
-    std::vector<node_t*> stack;
-    stack.push_back(this->root);
-    for (char chr : str) {  
-        node_t* current = stack.back();
-        if (current->children.count(chr) == 0) {
+    // Find the node that corresponds to the string.
+    node_t* node = this->root;
+    for (char chr : str) {
+        if (node->children.count(chr) == 0) {
             return;
         }
-        stack.push_back(current->children[chr]);
+        node = node->children[chr];
     }
 
-    stack.back()->present = false;
+    node->present = false;
 
-    // Clean up unnecessary nodes in the chain.
-    while (true) {
-        node_t* current = stack.back();
-        stack.pop_back();
-
-        // Reached a node that can't be deleted, cleanup is over.
-        if (current->present || current->children.size() != 0) {
-            break;
+    // Remove the unnecessary nodes along the path.
+    while (node != nullptr && !node->present && node->children.size() == 0) {
+        if (node->parent != nullptr) {
+            node->parent->children.erase(node->link);
         }
-
-        delete current;
-        if (stack.size() == 0) {
-            this->root = nullptr;
-            break;
-        } else {
-            stack.back()->children.erase(str[stack.size() - 1]);
-        }
+        node_t* temp = node;
+        node = node->parent;
+        delete temp;
     }
 }
 
-void Trie::debug() const {
-    std::cout << "<Trie>" << std::endl;
-    if (this->root != nullptr) {
-        std::string str;
-        this->root->debug(str);
+bool Trie::contains(const std::string& str) const {
+    if (this->root == nullptr) {
+        return false;
     }
-    std::cout << "</Trie>" << std::endl;
+
+    // Find the node that corresponds to the stirng.
+    node_t* node = this->root;
+    for (char chr : str) {
+        if (node->children.count(chr) == 0) {
+            return false;
+        }
+        node = node->children[chr];
+    }
+
+    return node->present;
+}
+
+std::ostream& operator<<(std::ostream& out, const Trie& trie) {
+    out << '[';
+    if (trie.root != nullptr) {
+        std::string str;
+        bool first = true;
+        Trie::visit(*trie.root, out, str, first);
+    }
+    out << ']';
+    return out;
 }
