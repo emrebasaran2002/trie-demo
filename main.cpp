@@ -25,7 +25,7 @@ void emptyTrieTest() {
     checkContents(trie, "[]");
 }
 
-void copyAssignmentOperator() {
+void copyAssignmentOperatorTest() {
     Trie trie1;
     Trie trie2;
 
@@ -58,7 +58,7 @@ void copyAssignmentOperator() {
 int main(void) {
     std::vector<Test> tests;
     tests.emplace_back("emptyTrieTest", &emptyTrieTest);
-    tests.emplace_back("copyAssignmentOperator", &copyAssignmentOperator);
+    tests.emplace_back("copyAssignmentOperatorTest", &copyAssignmentOperatorTest);
     
     for (const Test& test : tests) {
         std::cout << "Running: " << test.name << std::endl;
