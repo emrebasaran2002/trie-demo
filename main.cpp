@@ -128,6 +128,111 @@ void moveConstructorTest() {
     delete trie2;
 }
 
+void generalTest1() {
+    Trie trie;
+    assert(!trie.contains(""));
+    assert(!trie.contains("a"));
+    assert(!trie.contains("b"));
+    assert(!trie.contains("ab"));
+    checkContents(trie, "[]");
+
+    trie.add("");
+    assert(trie.contains(""));
+    assert(!trie.contains("a"));
+    assert(!trie.contains("b"));
+    assert(!trie.contains("ab"));
+    checkContents(trie, "[\"\"]");
+
+    trie.add("ab");
+    assert(trie.contains(""));
+    assert(!trie.contains("a"));
+    assert(!trie.contains("b"));
+    assert(trie.contains("ab"));
+    checkContents(trie, "[\"\", \"ab\"]");
+
+    trie.add("a");
+    assert(trie.contains(""));
+    assert(trie.contains("a"));
+    assert(!trie.contains("b"));
+    assert(trie.contains("ab"));
+    checkContents(trie, "[\"\", \"a\", \"ab\"]");
+
+    trie.remove("a");
+    assert(trie.contains(""));
+    assert(!trie.contains("a"));
+    assert(!trie.contains("b"));
+    assert(trie.contains("ab"));
+    checkContents(trie, "[\"\", \"ab\"]");
+
+    trie.remove("ab");
+    assert(trie.contains(""));
+    assert(!trie.contains("a"));
+    assert(!trie.contains("b"));
+    assert(!trie.contains("ab"));
+    checkContents(trie, "[\"\"]");
+
+    trie.add("b");
+    assert(trie.contains(""));
+    assert(!trie.contains("a"));
+    assert(trie.contains("b"));
+    assert(!trie.contains("ab"));
+    checkContents(trie, "[\"\", \"b\"]");
+
+    trie.remove("");
+    assert(!trie.contains(""));
+    assert(!trie.contains("a"));
+    assert(trie.contains("b"));
+    assert(!trie.contains("ab"));
+    checkContents(trie, "[\"b\"]");
+
+    trie.remove("b");
+    assert(!trie.contains(""));
+    assert(!trie.contains("a"));
+    assert(!trie.contains("b"));
+    assert(!trie.contains("ab"));
+    checkContents(trie, "[]");
+}
+
+void generalTest2() {
+    Trie trie;
+
+    trie.add("thanks");
+    trie.add("the");
+    trie.add("than");
+    trie.add("then");
+    checkContents(trie, "[\"than\", \"thanks\", \"the\", \"then\"]");
+
+    trie.add("thanks");
+    trie.add("think");
+    trie.add("then");
+    checkContents(trie, "[\"than\", \"thanks\", \"the\", \"then\", \"think\"]");
+
+    trie.remove("thin");
+    trie.remove("then");
+    trie.remove("than");
+    trie.remove("thy");
+    checkContents(trie, "[\"thanks\", \"the\", \"think\"]");
+
+    trie.add("ten");
+    trie.add("think");
+    trie.remove("then");
+    trie.add("");
+    trie.add("tan");
+    trie.remove("thanks");
+    checkContents(trie, "[\"\", \"tan\", \"ten\", \"the\", \"think\"]");
+
+    assert(trie.contains(""));
+    assert(trie.contains("tan"));
+    assert(trie.contains("ten"));
+    assert(!trie.contains("ton"));
+    assert(trie.contains("the"));
+    assert(!trie.contains("then"));
+    assert(!trie.contains("thin"));
+    assert(trie.contains("think"));
+    assert(!trie.contains("than"));
+    assert(!trie.contains("thanks"));
+}
+
 int main(void) {
     std::vector<Test> tests;
     tests.emplace_back("emptyTrieTest", &emptyTrieTest);
@@ -135,6 +240,8 @@ int main(void) {
     tests.emplace_back("copyConstructorTest", &copyConstructorTest);
     tests.emplace_back("moveAssignmentOperatorTest", &moveAssignmentOperatorTest);
     tests.emplace_back("moveConstructorTest", &moveConstructorTest);
+    tests.emplace_back("generalTest1", &generalTest1);
+    tests.emplace_back("generalTest2", &generalTest2);
     
     for (const Test& test : tests) {
         std::cout << "Running: " << test.name << std::endl;
